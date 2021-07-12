@@ -23,10 +23,10 @@ export default function Board() {
         <View>
         {/* row */}
         { board.map((row, indexRow) => (
-          <View style={styles.sudokuCols} key={indexRow}>
+          <View style={indexRow === 2 || indexRow === 5 || indexRow === 8 ? styles.sudokuColsThickBottom : indexRow === 0 ? styles.sudokuColsThickTop : styles.sudokuCols} key={indexRow}>
             {/* column */}
             { row.map((col, indexCol) => (
-            <TextInput key={`${indexRow}, ${indexCol}`} style={styles.sudokuBox} editable>{col === 0 ? '' : col}</TextInput>
+            <TextInput key={`${indexRow}, ${indexCol}`} style={indexCol === 0 ? styles.sudokuBoxThickLeft : indexCol === 2 || indexCol === 5 || indexCol === 8 ? styles.sudokuBoxThickRight : styles.sudokuBox} editable>{col === 0 ? '' : col}</TextInput>
             ))}
           </View>
         ))}
@@ -54,7 +54,33 @@ export default function Board() {
       padding: 2,
       textAlign: 'center'
     },
+    sudokuBoxThickRight: {
+      flexDirection: 'column',
+      height: 40,
+      width: 35,
+      borderWidth: 1,
+      borderRightWidth: 4,
+      padding: 2,
+      textAlign: 'center'
+    },
+    sudokuBoxThickLeft: {
+      flexDirection: 'column',
+      height: 40,
+      width: 35,
+      borderWidth: 1,
+      borderLeftWidth: 4,
+      padding: 2,
+      textAlign: 'center'
+    },
     sudokuCols: {
       flexDirection: 'row'
+    },
+    sudokuColsThickBottom: {
+      flexDirection: 'row',
+      borderBottomWidth: 3,
+    },
+    sudokuColsThickTop: {
+      flexDirection: 'row',
+      borderTopWidth: 3,
     }
   });
