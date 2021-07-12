@@ -13,7 +13,6 @@ export function fetchBoard() {
         .then(response => response.json())
         .then(data => {
             dispatch(setBoard(data.board))
-            console.log('BOARD>>>>>>>', data.board)
         })
         .catch(err => {
             console.log('ERROR FETCH BOARD', err)

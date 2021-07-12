@@ -14,7 +14,7 @@ export default function Board() {
       dispatch(fetchBoard())
     }, [])
   
-    // console.log('BOARD YG DIFETCH DI APP', board)
+    console.log('BOARD YG DIFETCH DI APP', JSON.stringify(board))
   
     return (
       <ScrollView contentContainerStyle={styles.container}>
@@ -22,11 +22,11 @@ export default function Board() {
         {/* <Text>{board}</Text> */}
         <View>
         {/* row */}
-        { board.map(row => (
-          <View style={styles.sudokuCols} key={row}>
+        { board.map((row, indexRow) => (
+          <View style={styles.sudokuCols} key={indexRow}>
             {/* column */}
-            { Array.from(Array(9), (e, j) => (
-            <TextInput key={j} style={styles.sudokuBox} editable>R{i}C{j}</TextInput>
+            { row.map((col, indexCol) => (
+            <TextInput key={`${indexRow}, ${indexCol}`} style={styles.sudokuBox} editable>{col === 0 ? '' : col}</TextInput>
             ))}
           </View>
         ))}
