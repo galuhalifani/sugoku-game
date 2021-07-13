@@ -1,9 +1,23 @@
-import { SET_BOARD, VALIDATE_BOARD, SOLVE_BOARD, RESET_BOARD } from './actionTypes.js'
+import { SET_BOARD, VALIDATE_BOARD, SOLVE_BOARD, RESET_BOARD, TOGGLE_LOADER_BOARD, TOGGLE_LOADER_VALIDATE } from './actionTypes.js'
 
 export function setBoard(input) {
     return {
         type: SET_BOARD,
         payload: input 
+    }
+}
+
+export function toggleLoaderBoard(input) {
+    return {
+        type: TOGGLE_LOADER_BOARD,
+        payload: input
+    }
+}
+
+export function toggleLoaderValidate(input) {
+    return {
+        type: TOGGLE_LOADER_VALIDATE,
+        payload: input
     }
 }
 
@@ -30,12 +44,15 @@ export function solve(input) {
 
 export function fetchBoard(difficulty) {
     return function(dispatch) {
+        dispatch(toggleLoaderBoard(true))
         fetch(`https://sugoku.herokuapp.com/board?difficulty=${difficulty}`)
         .then(response => response.json())
         .then(data => {
             dispatch(setBoard(data.board))
+            dispatch(toggleLoaderBoard(false))
         })
         .catch(err => {
+            dispatch(toggleLoaderBoard(false))
             console.log('ERROR FETCH BOARD', err)
         })
     }
@@ -56,6 +73,7 @@ export function validateBoard(board) {
     let data = {board:board}
 
       return function(dispatch) {
+        dispatch(toggleLoaderValidate(true))
         fetch('https://sugoku.herokuapp.com/validate', {
             method: 'POST',
             body: encodeParams(data),
@@ -65,8 +83,10 @@ export function validateBoard(board) {
             .then(data => {
                 console.log('RETURN VALIDATE', data)
                 dispatch(validate(data.status))
+                dispatch(toggleLoaderValidate(false))
             })
             .catch(err => {
+                dispatch(toggleLoaderValidate(false))
                 console.log('ERROR FETCH BOARD', err)
             })
     }

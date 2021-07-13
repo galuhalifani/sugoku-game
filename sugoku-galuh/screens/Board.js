@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import { StyleSheet, Text, View, TextInput, ScrollView, Button } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View, TextInput, ScrollView, Button } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux'
 import { StatusBar } from 'expo-status-bar';
 import { fetchBoard, validateBoard, solveBoard, resetBoard } from '../store/actions'
@@ -14,6 +14,8 @@ export default function Board({route, navigation}) {
     const dispatch = useDispatch()
     const select = useSelector
     const board = select(state => state.board)
+    const loadingBoard = select(state => state.loadingBoard)
+    const loadingValidate = select(state => state.loadingValidate)
     const solvedBoard = select(state => state.solvedBoard)
     const boardFetch = select(state => state.boardFetch)
     const boardStatus = select(state => state.boardStatus)
@@ -21,13 +23,13 @@ export default function Board({route, navigation}) {
     const uneditable = select(state => state.uneditable)
   
     useEffect(() => {
-      dispatch(fetchBoard(difficulty))
+      // dispatch(fetchBoard(difficulty))
       if (solvedBoard.length > 0) {
         setBoard2(solvedBoard)        
       } else if (board.length > 0) {
         setBoard2(board)
       }
-    }, [board.length, solvedBoard.length])
+    }, [board.length, solvedBoard])
   
     function changedBoard(text, r, c) {
       // console.log('latest board2', board2)
@@ -50,24 +52,27 @@ export default function Board({route, navigation}) {
 
     function solve() {
       if (boardStatus == 'broken') {
-        alert('Can not auto-solve: board status is "broken". Start a new game or adjust board')
+        alert('Can not auto-solve: board status is "broken". Reset your last move and re-validate.')
+      } else {
+        dispatch(solveBoard(board2))
       }
-      dispatch(solveBoard(board2))
     }
 
     function restart() {
       dispatch(resetBoard())
       dispatch(fetchBoard(difficulty))
     }
-
-    // console.log(JSON.stringify(board), 'BOARD')
   
     return (
       <ScrollView>
         <View style={styles.containerView}>
           <Text style={styles.sudokuTitle}>Welcome, {name}!</Text>
           <Text style={styles.sudokuText}>Level: {difficulty}</Text>
-          <View>
+          {
+            loadingBoard ?
+            <ActivityIndicator size="large" color="#00ff00"/>
+            :
+            <View style={{marginBottom: 10}}>
             {/* row */}
             { board2.map((row, indexRow) => (
               <View 
@@ -77,7 +82,20 @@ export default function Board({route, navigation}) {
                   { row.map((col, indexCol) => (
                   <TextInput key={`${indexRow}, ${indexCol}`} 
                   editable={uneditable.includes(`${indexRow}, ${indexCol}`) ? false : true}
-                  style={indexCol === 0 ? styles.sudokuBoxThickLeft : indexCol === 2 || indexCol === 5 || indexCol === 8 ? styles.sudokuBoxThickRight : styles.sudokuBox} 
+                  style={
+                    uneditable.includes(`${indexRow}, ${indexCol}`) && indexCol === 0 
+                    ? styles.sudokuBoxThickLeftFalse 
+                    : uneditable.includes(`${indexRow}, ${indexCol}`) && (indexCol === 2 || indexCol === 5 || indexCol === 8)
+                    ? styles.sudokuBoxThickRightFalse 
+                    : uneditable.includes(`${indexRow}, ${indexCol}`)
+                    ? styles.sudokuBoxFalse
+                    : indexCol === 0
+                    ? styles.sudokuBoxThickLeftTrue
+                    : indexCol === 2 || indexCol === 5 || indexCol === 8
+                    ? styles.sudokuBoxThickRightTrue
+                    : styles.sudokuBoxTrue
+                  } 
+                  // style={indexCol === 0 ? styles.sudokuBoxThickLeft : indexCol === 2 || indexCol === 5 || indexCol === 8 ? styles.sudokuBoxThickRight : styles.sudokuBox} 
                   onChangeText={(text) => changedBoard(text, indexRow, indexCol)}
                   keyboardType = 'numeric'
                   value={col === 0 ? '' : `${col}`}>
@@ -85,16 +103,20 @@ export default function Board({route, navigation}) {
                   ))}
               </View>
             ))}
-        </View>
-
+            </View>
+          }
+          
         {
         boardFetch ?
-        <View style={{width: '70%', marginBottom: 30}}>
-          <Separator />
-
-          <View style={{alignItems:'center'}}>
-          <Text style={{marginBottom: 10}}>Status: <Text style={{color: boardStatus == 'Not Validated' ? 'blue' : boardStatus == 'solved' ? 'darkgreen' : 'red'}}>{boardStatus}</Text></Text>
-          </View>
+        <View style={{width: '70%', marginBottom: 10}}>
+          {
+            loadingValidate ?
+            <ActivityIndicator size="large" color="#00ff00"/>
+            :
+            <View style={{alignItems:'center'}}>
+            <Text style={{marginBottom: 10, marginTop: 5}}>Status: <Text style={{color: boardStatus == 'Not Validated' ? 'blue' : boardStatus == 'solved' ? 'darkgreen' : 'red'}}>{boardStatus}</Text></Text>
+            </View>            
+          }
 
           <Button
           onPress={validate}
@@ -105,7 +127,7 @@ export default function Board({route, navigation}) {
 
           <Button
           onPress={solve}
-          title="Solve"
+          title="Auto-Solve"
           color="green"/>   
 
           <Separator />
@@ -143,7 +165,7 @@ export default function Board({route, navigation}) {
     sudokuText: {
       marginBottom: 20
     },  
-    sudokuBox: {
+    sudokuBoxTrue: {
       color: 'black',
       flexDirection: 'column',
       height: 40,
@@ -152,7 +174,28 @@ export default function Board({route, navigation}) {
       padding: 2,
       textAlign: 'center'
     },
-    sudokuBoxThickRight: {
+    sudokuBoxFalse: {
+      color: 'black',
+      flexDirection: 'column',
+      height: 40,
+      width: 35,
+      borderWidth: 1,
+      padding: 2,
+      textAlign: 'center',
+      backgroundColor: 'lightgrey'
+    },
+    sudokuBoxThickRightFalse: {
+      color: 'black',
+      flexDirection: 'column',
+      height: 40,
+      width: 35,
+      borderWidth: 1,
+      borderRightWidth: 4,
+      padding: 2,
+      textAlign: 'center',
+      backgroundColor: 'lightgrey'
+    },
+    sudokuBoxThickRightTrue: {
       color: 'black',
       flexDirection: 'column',
       height: 40,
@@ -162,7 +205,7 @@ export default function Board({route, navigation}) {
       padding: 2,
       textAlign: 'center'
     },
-    sudokuBoxThickLeft: {
+    sudokuBoxThickLeftTrue: {
       color: 'black',
       flexDirection: 'column',
       height: 40,
@@ -171,6 +214,17 @@ export default function Board({route, navigation}) {
       borderLeftWidth: 4,
       padding: 2,
       textAlign: 'center'
+    },
+    sudokuBoxThickLeftFalse: {
+      color: 'black',
+      flexDirection: 'column',
+      height: 40,
+      width: 35,
+      borderWidth: 1,
+      borderLeftWidth: 4,
+      padding: 2,
+      textAlign: 'center',
+      backgroundColor: 'lightgrey'
     },
     sudokuCols: {
       flexDirection: 'row'
@@ -187,5 +241,17 @@ export default function Board({route, navigation}) {
       marginVertical: 8,
       borderBottomColor: '#737373',
       borderBottomWidth: StyleSheet.hairlineWidth,
-    },    
+    },  
+    overlay: {
+      flex: 1,
+      width: '100%', /* Full width (cover the whole page) */
+      height: '100%', /* Full height (cover the whole page) */
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      // backgroundColor: rgba(106, 160, 221, 0.116), /* Black background with opacity */
+      zIndex: 2, /* Specify a stack order in case you're using a different order for other elements */
+      // cursor: pointer /* Add a pointer on hover */
+    }  
   });
