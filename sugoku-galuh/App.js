@@ -4,6 +4,7 @@ import { Provider } from 'react-redux'
 import store from "./store";
 import Board from './screens/Board.js'
 import HomeScreen from './screens/HomeScreen.js'
+import Finish from './screens/Finish.js'
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
@@ -16,7 +17,7 @@ export default function App() {
       <Stack.Navigator>
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Game" component={Board} />
-        <Stack.Screen name="Finish" component={Board} />
+        <Stack.Screen name="Finish" component={Finish} />
       </Stack.Navigator>
     </NavigationContainer>
     </Provider>

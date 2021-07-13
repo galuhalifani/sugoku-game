@@ -1,9 +1,8 @@
 import React, {useState, useRef, useEffect} from 'react';
-import { StyleSheet, Text, View, TextInput, ScrollView, Button } from 'react-native';
+import { StyleSheet, Text, View, TextInput, Button } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import { useDispatch, useSelector } from 'react-redux'
-import { StatusBar } from 'expo-status-bar';
-import { fetchBoard, validateBoard, solveBoard, resetBoard } from '../store/actions'
+import { fetchBoard, resetBoard } from '../store/actions'
 
 const Separator = () => (
     <View style={styles.separator} />
@@ -40,6 +39,7 @@ export default function HomeScreen({navigation}) {
       } else if (selectedDifficulty == '') {
         alert('Please select difficulty level')
       } else {
+        dispatch(resetBoard())
         dispatch(fetchBoard(selectedDifficulty))
         navigation.navigate('Game', {
           name: playerName,

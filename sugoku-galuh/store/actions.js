@@ -1,4 +1,4 @@
-import { SET_BOARD, VALIDATE_BOARD, SOLVE_BOARD, RESET_BOARD, TOGGLE_LOADER_BOARD, TOGGLE_LOADER_VALIDATE } from './actionTypes.js'
+import { SET_UNEDITABLE, SET_BOARD, VALIDATE_BOARD, SOLVE_BOARD, RESET_BOARD, TOGGLE_LOADER_BOARD, TOGGLE_LOADER_VALIDATE } from './actionTypes.js'
 
 export function setBoard(input) {
     return {
@@ -42,6 +42,13 @@ export function solve(input) {
     }
 }
 
+export function setUneditable(input) {
+    return {
+        type: SET_UNEDITABLE,
+        payload: input 
+    }
+}
+
 export function fetchBoard(difficulty) {
     return function(dispatch) {
         dispatch(toggleLoaderBoard(true))
@@ -81,7 +88,7 @@ export function validateBoard(board) {
           })
             .then(response => response.json())
             .then(data => {
-                console.log('RETURN VALIDATE', data)
+                // console.log('RETURN VALIDATE', data)
                 dispatch(validate(data.status))
                 dispatch(toggleLoaderValidate(false))
             })
@@ -114,7 +121,7 @@ export function solveBoard(board) {
           })
             .then(response => response.json())
             .then(data => {
-                console.log('RETURN SOLVE', data)
+                // console.log('RETURN SOLVE', data)
                 dispatch(solve(data))
             })
             .catch(err => {

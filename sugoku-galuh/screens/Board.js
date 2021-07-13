@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import { ActivityIndicator, StyleSheet, Text, View, TextInput, ScrollView, Button } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux'
-import { StatusBar } from 'expo-status-bar';
 import { fetchBoard, validateBoard, solveBoard, resetBoard } from '../store/actions'
 
 const Separator = () => (
@@ -23,31 +22,51 @@ export default function Board({route, navigation}) {
     const uneditable = select(state => state.uneditable)
   
     useEffect(() => {
-      // dispatch(fetchBoard(difficulty))
+      console.log('useEffect')
       if (solvedBoard.length > 0) {
         setBoard2(solvedBoard)        
       } else if (board.length > 0) {
         setBoard2(board)
+      } 
+      
+        if (boardStatus === 'solved') {
+        console.log('STATUS SOLVED')
+        navigation.navigate('Finish', {
+          name: name,
+          difficulty: difficulty,
+          board: board2
+        })
       }
-    }, [board.length, solvedBoard])
+    }, [board.length, solvedBoard, boardStatus])
   
     function changedBoard(text, r, c) {
-      // console.log('latest board2', board2)
-      let newBoard = [...board2]
-      console.log('ROW', r, 'COL', c, 'VALUE', text)
-      for (let row = 0; row < newBoard.length; row++) {
-        for (let col = 0; col < newBoard[row].length; col++) {
-          if (row == r && col == c) {
-            console.log('CONDITIONAL OK')
-            newBoard[row][col] = +text
-            setBoard2(newBoard)
+      if (text.length > 1) {
+        alert('You can only input 1 digit for each box')
+      } else {
+        let newBoard = [...board2]
+        // console.log('ROW', r, 'COL', c, 'VALUE', text)
+        for (let row = 0; row < newBoard.length; row++) {
+          for (let col = 0; col < newBoard[row].length; col++) {
+            if (row == r && col == c) {
+              // console.log('CONDITIONAL OK')
+              newBoard[row][col] = +text
+              setBoard2(newBoard)
+            }
           }
-        }
+        }        
       }
     }
 
     function validate() {
       dispatch(validateBoard(board2))
+      if (boardStatus === 'solved') {
+        console.log('STATUS SOLVED')
+        navigation.navigate('Finish', {
+          name: name,
+          difficulty: difficulty,
+          board: board2
+        })
+      }
     }
 
     function solve() {
@@ -68,6 +87,7 @@ export default function Board({route, navigation}) {
         <View style={styles.containerView}>
           <Text style={styles.sudokuTitle}>Welcome, {name}!</Text>
           <Text style={styles.sudokuText}>Level: {difficulty}</Text>
+
           {
             loadingBoard ?
             <ActivityIndicator size="large" color="#00ff00"/>
@@ -162,6 +182,25 @@ export default function Board({route, navigation}) {
       marginBottom: 20,
       fontWeight: 'bold'
     },  
+    true: {
+      color: 'black',
+      flexDirection: 'column',
+      height: 40,
+      width: 35,
+      borderWidth: 1,
+      padding: 2,
+      textAlign: 'center'
+    },
+    false: {
+      color: 'black',
+      flexDirection: 'column',
+      height: 40,
+      width: 35,
+      borderWidth: 1,
+      padding: 2,
+      textAlign: 'center',
+      backgroundColor: 'lightgrey'
+    },
     sudokuText: {
       marginBottom: 20
     },  
