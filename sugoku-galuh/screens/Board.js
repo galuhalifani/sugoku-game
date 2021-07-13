@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import { StyleSheet, Text, View, TextInput, ScrollView, Button } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux'
-import store from "../store";
 import { StatusBar } from 'expo-status-bar';
 import { fetchBoard, validateBoard, solveBoard } from '../store/actions'
 

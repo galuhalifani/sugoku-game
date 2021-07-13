@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet, Text, View, TextInput, ScrollView, Button } from 'react-native';
 
 const Separator = () => (
     <View style={styles.separator} />
