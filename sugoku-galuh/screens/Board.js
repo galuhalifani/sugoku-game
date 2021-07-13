@@ -17,6 +17,7 @@ export default function Board() {
     const boardFetch = select(state => state.boardFetch)
     const boardStatus = select(state => state.boardStatus)
     const [board2, setBoard2] = useState([])
+    const uneditable = select(state => state.uneditable)
   
     useEffect(() => {
       dispatch(fetchBoard())
@@ -51,8 +52,6 @@ export default function Board() {
     function solve() {
       dispatch(solveBoard(board2))
     }
-
-    console.log('NEWBOARD', JSON.stringify(board2))
   
     return (
       <ScrollView contentContainerStyle={styles.container}>
@@ -67,8 +66,8 @@ export default function Board() {
                 {/* column */}
                 { row.map((col, indexCol) => (
                 <TextInput key={`${indexRow}, ${indexCol}`} 
+                editable={uneditable.includes(`${indexRow}, ${indexCol}`) ? false : true}
                 style={indexCol === 0 ? styles.sudokuBoxThickLeft : indexCol === 2 || indexCol === 5 || indexCol === 8 ? styles.sudokuBoxThickRight : styles.sudokuBox} 
-                editable
                 onChangeText={(text) => changedBoard(text, indexRow, indexCol)}
                 keyboardType = 'numeric'
                 value={col === 0 ? '' : `${col}`}>
@@ -90,16 +89,14 @@ export default function Board() {
         <Button style={styles.validateButton}
         onPress={validate}
         title="Validate"
-        color="blue"
-        accessibilityLabel="Learn more about this purple button"/>
+        color="blue"/>
 
         <Separator />
 
         <Button
         onPress={solve}
         title="Solve"
-        color="green"
-        accessibilityLabel="Learn more about this purple button"/>        
+        color="green"/>        
       </View>
       :
       null
@@ -121,6 +118,7 @@ export default function Board() {
       marginBottom: 20
     },  
     sudokuBox: {
+      color: 'black',
       flexDirection: 'column',
       height: 40,
       width: 35,
@@ -129,6 +127,7 @@ export default function Board() {
       textAlign: 'center'
     },
     sudokuBoxThickRight: {
+      color: 'black',
       flexDirection: 'column',
       height: 40,
       width: 35,
@@ -138,6 +137,7 @@ export default function Board() {
       textAlign: 'center'
     },
     sudokuBoxThickLeft: {
+      color: 'black',
       flexDirection: 'column',
       height: 40,
       width: 35,
