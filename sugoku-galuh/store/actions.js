@@ -1,8 +1,15 @@
-import { SET_BOARD, VALIDATE_BOARD, SOLVE_BOARD } from './actionTypes.js'
+import { SET_BOARD, VALIDATE_BOARD, SOLVE_BOARD, RESET_BOARD } from './actionTypes.js'
 
 export function setBoard(input) {
     return {
         type: SET_BOARD,
+        payload: input 
+    }
+}
+
+export function resetBoard(input) {
+    return {
+        type: RESET_BOARD,
         payload: input 
     }
 }
@@ -21,9 +28,9 @@ export function solve(input) {
     }
 }
 
-export function fetchBoard() {
+export function fetchBoard(difficulty) {
     return function(dispatch) {
-        fetch('https://sugoku.herokuapp.com/board?difficulty=easy')
+        fetch(`https://sugoku.herokuapp.com/board?difficulty=${difficulty}`)
         .then(response => response.json())
         .then(data => {
             dispatch(setBoard(data.board))

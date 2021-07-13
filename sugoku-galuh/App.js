@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet, Text, View, TextInput, ScrollView, Button } from 'react-native';
 import { Provider } from 'react-redux'
 import store from "./store";
 import Board from './screens/Board.js'

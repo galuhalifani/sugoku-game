@@ -1,5 +1,5 @@
 import { createStore, applyMiddleware, compose } from 'redux'
-import { SET_BOARD, VALIDATE_BOARD, SOLVE_BOARD } from './actionTypes.js'
+import { SET_BOARD, VALIDATE_BOARD, SOLVE_BOARD, RESET_BOARD } from './actionTypes.js'
 import thunk from 'redux-thunk'
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose
 
@@ -7,7 +7,7 @@ const initialState = {
     board: [],
     solvedBoard: [],
     boardFetch: 'false',
-    boardStatus: 'Not Started',
+    boardStatus: 'Not Validated',
     uneditable: []
 }
 
@@ -26,6 +26,8 @@ function boardReducer(state = initialState, action) {
         return { ...state, boardStatus: action.payload}
     } else if (action.type === SOLVE_BOARD) {
         return { ...state, solvedBoard: action.payload.solution, boardStatus: action.payload.status}
+    } else if (action.type === RESET_BOARD) {
+        return { ...state, solvedBoard: [], boardStatus: 'Not Validated', board: []}
     }
 
     return state
