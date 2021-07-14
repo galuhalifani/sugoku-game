@@ -19,14 +19,12 @@ export default function Finish({route, navigation}) {
     }
 
     function toBoard() {
-        // console.log(board, 'BOARD')
         let finalBoardIndex = []
         for (let i = 0; i < board.length; i++) {
             for (let j = 0; j < board[i].length; j++) {
                 finalBoardIndex.push(`${i}, ${j}`)
             }
         }
-        // console.log(finalBoardIndex,'FINAL BOARD')
         dispatch(setUneditable(finalBoardIndex))
         navigation.navigate('Game')
     }

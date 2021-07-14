@@ -1,7 +1,8 @@
 import React, {useEffect, useState} from 'react';
-import { ActivityIndicator, StyleSheet, Text, View, TextInput, ScrollView, Button } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View, TextInput, ScrollView, Button, Alert, Animated } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux'
-import { fetchBoard, validateBoard, solveBoard, resetBoard } from '../store/actions'
+import { fetchBoard, validateBoard, solveBoard, resetBoard, setFinished } from '../store/actions'
+import { CountdownCircleTimer } from 'react-native-countdown-circle-timer';
 
 const Separator = () => (
   <View style={styles.separator} />
@@ -9,37 +10,82 @@ const Separator = () => (
 
 export default function Board({route, navigation}) {
     const { name, difficulty } = route.params
+    const countdown = +route.params.countdown
 
     const dispatch = useDispatch()
     const select = useSelector
     const board = select(state => state.board)
     const loadingBoard = select(state => state.loadingBoard)
     const loadingValidate = select(state => state.loadingValidate)
-    const solvedBoard = select(state => state.solvedBoard)
+    const autoSolvedBoard = select(state => state.autoSolvedBoard)
     const boardFetch = select(state => state.boardFetch)
     const boardStatus = select(state => state.boardStatus)
     const [board2, setBoard2] = useState([])
     const uneditable = select(state => state.uneditable)
+    const finished = select(state => state.finished)
+    const [isPlaying, setIsPlaying] = useState(true)
+    const [timeOut, setTimeOut] = useState(false)
+    const [normalTimer, setNormalTimer] = useState(false)
+    let secondCount = 0;
+    let stopWatch;
+    const [timelapse, setTimeLapse] = useState('')
+
+    useEffect(() => {
+      let mounted = true
+      console.log('useEffect 1')
+      if(mounted) {
+        if (autoSolvedBoard.length > 0) {
+          setBoard2(autoSolvedBoard)        
+        } else if (board.length > 0) {
+          setBoard2(board)
+        } 
+        if (boardStatus === 'solved') {
+          clearInterval(stopWatch)
+          dispatch(setFinished(true))
+          navigation.navigate('Finish', {
+            name: name,
+            difficulty: difficulty,
+            board: board2
+          })
+        }
+      }
+      return () => { mounted = false };
+    }, [board.length, autoSolvedBoard, boardStatus])
+
+    // hooks for setInterval timelapse
+    useEffect(() => {
+      let mounted = true
+      if(mounted && (finished === false)) {
+        stopWatch = setInterval(displayTime, 1000)
+      } else if (finished == true) {
+        setNormalTimer(true)
+        clearInterval(stopWatch)
+      }
+      return () => { mounted = false, clearInterval(stopWatch) };
+    }, [finished])
   
     useEffect(() => {
-      console.log('useEffect')
-      if (solvedBoard.length > 0) {
-        setBoard2(solvedBoard)        
-      } else if (board.length > 0) {
-        setBoard2(board)
-      } 
-      
-        if (boardStatus === 'solved') {
-        console.log('STATUS SOLVED')
-        navigation.navigate('Finish', {
-          name: name,
-          difficulty: difficulty,
-          board: board2
-        })
+      if (countdown == 0) {
+        setNormalTimer(true)
       }
-    }, [board.length, solvedBoard, boardStatus])
-  
-    function changedBoard(text, r, c) {
+    }, [countdown])
+
+    // hooks for removeScreen
+    useEffect(() => {
+        navigation.addListener('beforeRemove', (e) => {
+          e.preventDefault();
+           Alert.alert("Start a New Game?", "Your last game will not be saved", [
+             {
+               text: "Cancel",
+               onPress: () => null,
+               style: "cancel"
+             },
+             { text: "YES", onPress: () => navigation.dispatch(e.data.action) }
+           ]);
+         })    
+   }, [navigation])
+ 
+    function changeBoard(text, r, c) {
       if (text.length > 1) {
         alert('You can only input 1 digit for each box')
       } else {
@@ -60,7 +106,9 @@ export default function Board({route, navigation}) {
     function validate() {
       dispatch(validateBoard(board2))
       if (boardStatus === 'solved') {
-        console.log('STATUS SOLVED')
+        setNormalTimer(true)
+        clearInterval(stopWatch)
+        dispatch(setFinished(true))
         navigation.navigate('Finish', {
           name: name,
           difficulty: difficulty,
@@ -81,7 +129,45 @@ export default function Board({route, navigation}) {
       dispatch(resetBoard())
       dispatch(fetchBoard(difficulty))
     }
-  
+
+    function toHome() {
+      navigation.navigate('Home')
+    }
+
+    // display timer (lapsed time)
+    function displayTime() {
+      let hours = Math.floor(secondCount/3600);
+      let minutes = Math.floor((secondCount % 3600)/60);
+      let seconds = Math.floor(secondCount % 60)
+
+      // Display a leading zero if the values are less than ten
+      let displayHours = (hours < 10) ? '0' + hours : hours;
+      let displayMinutes = (minutes < 10) ? '0' + minutes : minutes;
+      let displaySeconds = (seconds < 10) ? '0' + seconds : seconds;
+
+      secondCount++;
+
+      setTimeLapse(displayHours + ':' + displayMinutes + ':' + displaySeconds)
+    }
+
+    // countdown (different from timer)
+    function countDownTimeOut() {
+      setNormalTimer(true)
+      setTimeOut(true)
+      setIsPlaying(false)
+      Alert.alert("Time Out!", "Would You Like to Continue With Normal Timer?", [
+        {
+          text: "Give Up - Back To Home",
+          onPress: () => {dispatch(setFinished(true)); navigation.navigate('Home')
+          }, 
+          style: "cancel"
+        },
+        { text: "Continue", 
+          onPress: () => null
+        }
+      ]);
+    }
+    
     return (
       <ScrollView>
         <View style={styles.containerView}>
@@ -89,10 +175,49 @@ export default function Board({route, navigation}) {
           <Text style={styles.sudokuText}>Level: {difficulty}</Text>
 
           {
+            countdown == 0 || finished == true ?
+            null
+            :
+            
+            <CountdownCircleTimer
+                size={50}
+                strokeWidth={5}
+                isPlaying={isPlaying}
+                duration={countdown}
+                colors={[
+                  ['#004777', 0.5],
+                  ['#F7B801', 0.5],
+                  ['#A30000', 0.5],
+                ]}
+                onComplete={countDownTimeOut}
+            >
+              {({ remainingTime, animatedColor }) => (
+                timeOut
+                ?
+                <Animated.Text style={{ color: animatedColor, fontSize: 10 }}>
+                Time Out!
+                </Animated.Text>
+                :  
+                <Animated.Text style={{ color: animatedColor, fontSize: 20 }}>
+                {remainingTime}
+                </Animated.Text>
+              )}
+            </CountdownCircleTimer>
+           
+          }
+
+          {
+            normalTimer ?
+            <Text style={{marginBottom: 10, fontStyle:'italic'}}>Time elapsed: <Text style={{backgroundColor: 'darkred', color:'white'}}>{timelapse}</Text></Text>
+            :
+            null
+          }
+
+          {
             loadingBoard ?
             <ActivityIndicator size="large" color="#00ff00"/>
             :
-            <View style={{marginBottom: 10}}>
+            <View style={{marginBottom: 10, marginTop: 10}}>
             {/* row */}
             { board2.map((row, indexRow) => (
               <View 
@@ -115,8 +240,7 @@ export default function Board({route, navigation}) {
                     ? styles.sudokuBoxThickRightTrue
                     : styles.sudokuBoxTrue
                   } 
-                  // style={indexCol === 0 ? styles.sudokuBoxThickLeft : indexCol === 2 || indexCol === 5 || indexCol === 8 ? styles.sudokuBoxThickRight : styles.sudokuBox} 
-                  onChangeText={(text) => changedBoard(text, indexRow, indexCol)}
+                  onChangeText={(text) => changeBoard(text, indexRow, indexCol)}
                   keyboardType = 'numeric'
                   value={col === 0 ? '' : `${col}`}>
                   </TextInput>
@@ -126,42 +250,55 @@ export default function Board({route, navigation}) {
             </View>
           }
           
-        {
-        boardFetch ?
-        <View style={{width: '70%', marginBottom: 10}}>
           {
-            loadingValidate ?
-            <ActivityIndicator size="large" color="#00ff00"/>
-            :
-            <View style={{alignItems:'center'}}>
-            <Text style={{marginBottom: 10, marginTop: 5}}>Status: <Text style={{color: boardStatus == 'Not Validated' ? 'blue' : boardStatus == 'solved' ? 'darkgreen' : 'red'}}>{boardStatus}</Text></Text>
-            </View>            
-          }
+          boardFetch ?
+          <View style={{width: '80%', marginBottom: 10}}>
+            {
+              loadingValidate ?
+              <ActivityIndicator size="large" color="#00ff00"/>
+              :
+              <View style={{alignItems:'center'}}>
+              <Text style={{marginBottom: 10, marginTop: 5}}>Status: <Text style={{color: boardStatus == 'Not Validated' ? 'blue' : boardStatus == 'solved' ? 'darkgreen' : 'red'}}>{boardStatus}</Text></Text>
+              </View>            
+            }
+            
+            <Button
+            onPress={validate}
+            title="Validate"
+            color="blue"/>
 
-          <Button
-          onPress={validate}
-          title="Validate"
-          color="blue"/>
+            <Separator />
 
-          <Separator />
-
-          <Button
-          onPress={solve}
-          title="Auto-Solve"
-          color="green"/>   
-
-          <Separator />
-
-          <Button
-          onPress={restart}
-          title="Shuffle New Board"
-          color="darkred"/> 
-          <Separator />
-     
-        </View>
-        :
-        null
-        }      
+            {
+              finished ?
+              <Button
+              onPress={toHome}
+              title="Start New Game"
+              color="green"/>   
+              :
+              <View style={{flexDirection:'row'}}>
+                <View style={{flex:1, marginRight: 3}}>
+                <Button
+                onPress={solve}
+                title="Auto-Solve"
+                color="green"/>   
+                </View>
+  
+              <Separator />
+                <View style={{flex:1}}>
+                <Button
+                onPress={restart}
+                title="Shuffle Board"
+                color="darkred"/> 
+                <Separator />
+                </View>
+              </View>
+            }
+      
+          </View>
+          :
+          null
+          }      
 
         {/* <StatusBar style="auto" />   */}
       </View>      
@@ -178,8 +315,8 @@ export default function Board({route, navigation}) {
       justifyContent: 'center',
     },
     sudokuTitle: {
-      marginTop: 30,
-      marginBottom: 20,
+      marginTop: 15,
+      marginBottom: 15,
       fontWeight: 'bold'
     },  
     true: {
@@ -202,13 +339,14 @@ export default function Board({route, navigation}) {
       backgroundColor: 'lightgrey'
     },
     sudokuText: {
-      marginBottom: 20
+      marginBottom: 5
     },  
     sudokuBoxTrue: {
       color: 'black',
       flexDirection: 'column',
       height: 40,
       width: 35,
+      borderColor: 'darkgrey',
       borderWidth: 1,
       padding: 2,
       textAlign: 'center'
@@ -218,6 +356,7 @@ export default function Board({route, navigation}) {
       flexDirection: 'column',
       height: 40,
       width: 35,
+      borderColor: 'darkgrey',
       borderWidth: 1,
       padding: 2,
       textAlign: 'center',
@@ -229,6 +368,8 @@ export default function Board({route, navigation}) {
       height: 40,
       width: 35,
       borderWidth: 1,
+      borderColor: 'darkgrey',
+      borderRightColor: 'black',
       borderRightWidth: 4,
       padding: 2,
       textAlign: 'center',
@@ -240,6 +381,8 @@ export default function Board({route, navigation}) {
       height: 40,
       width: 35,
       borderWidth: 1,
+      borderColor: 'darkgrey',
+      borderRightColor: 'black',
       borderRightWidth: 4,
       padding: 2,
       textAlign: 'center'
@@ -250,6 +393,8 @@ export default function Board({route, navigation}) {
       height: 40,
       width: 35,
       borderWidth: 1,
+      borderColor: 'darkgrey',
+      borderLeftColor: 'black',
       borderLeftWidth: 4,
       padding: 2,
       textAlign: 'center'
@@ -260,6 +405,8 @@ export default function Board({route, navigation}) {
       height: 40,
       width: 35,
       borderWidth: 1,
+      borderColor: 'darkgrey',
+      borderLeftColor: 'black',
       borderLeftWidth: 4,
       padding: 2,
       textAlign: 'center',

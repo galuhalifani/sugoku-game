@@ -1,8 +1,8 @@
 import React, {useState, useRef, useEffect} from 'react';
-import { StyleSheet, Text, View, TextInput, Button } from 'react-native';
+import { StyleSheet, Text, View, TextInput, Button, BackHandler, Alert } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import { useDispatch, useSelector } from 'react-redux'
-import { fetchBoard, resetBoard } from '../store/actions'
+import { fetchBoard, resetBoard, setFinished } from '../store/actions'
 
 const Separator = () => (
     <View style={styles.separator} />
@@ -13,13 +13,18 @@ export default function HomeScreen({navigation}) {
     const select = useSelector
     const [selectedDifficulty, setSelectedDifficulty] = useState('');
     const [playerName, setPlayerName] = useState('');
+    const [countdown, setCountdown] = useState('0');
     const pickerRef = useRef();
 
     useEffect(() => {
-      console.log('re-render HOME')
-      setPlayerName('')
-      setSelectedDifficulty('')
-    }, [])
+      const homePage = navigation.addListener('focus', () => {
+        dispatch(resetBoard())
+        dispatch(setFinished(false))  
+        setSelectedDifficulty('')
+        setCountdown('0')  
+      })
+      return homePage
+    }, [navigation])
 
     function open() {
       pickerRef.current.focus();
@@ -40,10 +45,12 @@ export default function HomeScreen({navigation}) {
         alert('Please select difficulty level')
       } else {
         dispatch(resetBoard())
+        dispatch(setFinished(false))
         dispatch(fetchBoard(selectedDifficulty))
         navigation.navigate('Game', {
           name: playerName,
-          difficulty: selectedDifficulty
+          difficulty: selectedDifficulty,
+          countdown: countdown
         })
       }
     }
@@ -54,34 +61,53 @@ export default function HomeScreen({navigation}) {
       <Separator />
       <View style={styles.formView}>
         <Text style={styles.formTitle}>Enter Name and Level</Text>
+        
         <TextInput style={styles.nameForm}
         editable
         onChangeText={(text) => changePlayerName(text)}
         placeholder='Please Enter Your Name'
         placeholderTextColor="lightgrey"
         value={playerName}>
-      </TextInput>
+        </TextInput>
 
-      <Picker style={styles.picker}
-        ref={pickerRef}
-        mode={'dropdown'}
-        selectedValue={selectedDifficulty}
-        onValueChange={(itemValue) =>
-          setSelectedDifficulty(itemValue)
-        }>
-        <Picker.Item label="Difficulty" value="" enabled={false}/>
-        <Picker.Item label="Easy" value="easy" />
-        <Picker.Item label="Medium" value="medium" />
-        <Picker.Item label="Hard" value="hard" />
-        <Picker.Item label="Random" value="random" />
-      </Picker>
+        <Picker style={styles.picker}
+          ref={pickerRef}
+          mode={'dropdown'}
+          selectedValue={selectedDifficulty}
+          onValueChange={(itemValue) =>
+            setSelectedDifficulty(itemValue)
+          }>
+          <Picker.Item label="Difficulty" value="" enabled={false}/>
+          <Picker.Item label="Easy" value="easy" />
+          <Picker.Item label="Medium" value="medium" />
+          <Picker.Item label="Hard" value="hard" />
+          <Picker.Item label="Random" value="random" />
+        </Picker>
+
+        <View style={{marginTop: 10}}>
+        <Text style={styles.formTitle}>Add a Countdown Timer?</Text>
+            <Picker style={styles.pickerCountdown}
+            ref={pickerRef}
+            selectedValue={countdown}
+            onValueChange={(itemValue) =>
+              setCountdown(itemValue)
+            }>
+              <Picker.Item label="Play Without Countdown" value="0"/>
+              <Picker.Item label="10 Seconds" value="10" />
+              <Picker.Item label="30 Seconds" value="30" />
+              <Picker.Item label="1 Minute" value="60" />
+              <Picker.Item label="1.5 Minutes" value="90" />
+              <Picker.Item label="2 Minutes" value="120" />
+              <Picker.Item label="2.5 Minutes" value="150" />
+            </Picker>
+        </View>
       </View>
 
       <Separator />
 
       <Button style={styles.validateButton}
         onPress={startGame}
-        title="Start Playing"
+        title="Start a New Game"
         color="darkgreen">
         </Button>
 
@@ -142,7 +168,18 @@ export default function HomeScreen({navigation}) {
       // alignItems: 'center',
       width: '50%',
       color: 'white',
-      marginBottom: 10
+      marginBottom: 10,
+      borderBottomColor: 'lightgrey',
+      borderBottomWidth: StyleSheet.hairlineWidth
+    },
+    pickerCountdown: {
+      // alignItems: 'center',
+      width: '50%',
+      color: 'white',
+      marginBottom: 10,
+      marginTop: 10,
+      borderBottomColor: 'lightgrey',
+      borderBottomWidth: StyleSheet.hairlineWidth
     },
     brightText: {
       color: 'white'

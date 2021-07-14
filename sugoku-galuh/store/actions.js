@@ -1,4 +1,4 @@
-import { SET_UNEDITABLE, SET_BOARD, VALIDATE_BOARD, SOLVE_BOARD, RESET_BOARD, TOGGLE_LOADER_BOARD, TOGGLE_LOADER_VALIDATE } from './actionTypes.js'
+import { SET_UNEDITABLE, SET_FINISHED, SET_BOARD, VALIDATE_BOARD, SOLVE_BOARD, RESET_BOARD, TOGGLE_LOADER_BOARD, TOGGLE_LOADER_VALIDATE } from './actionTypes.js'
 
 export function setBoard(input) {
     return {
@@ -45,6 +45,13 @@ export function solve(input) {
 export function setUneditable(input) {
     return {
         type: SET_UNEDITABLE,
+        payload: input 
+    }
+}
+
+export function setFinished(input) {
+    return {
+        type: SET_FINISHED,
         payload: input 
     }
 }

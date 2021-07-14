@@ -1,21 +1,21 @@
 import { createStore, applyMiddleware, compose } from 'redux'
-import { SET_UNEDITABLE, SET_BOARD, VALIDATE_BOARD, SOLVE_BOARD, RESET_BOARD, TOGGLE_LOADER_BOARD, TOGGLE_LOADER_VALIDATE } from './actionTypes.js'
+import { SET_UNEDITABLE, SET_BOARD, VALIDATE_BOARD, SET_FINISHED, SOLVE_BOARD, RESET_BOARD, TOGGLE_LOADER_BOARD, TOGGLE_LOADER_VALIDATE } from './actionTypes.js'
 import thunk from 'redux-thunk'
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose
 
 const initialState = {
     board: [],
-    solvedBoard: [],
+    autoSolvedBoard: [],
     boardFetch: 'false',
     boardStatus: 'Not Validated',
     uneditable: [],
     loadingBoard: false,
-    loadingValidate: false
+    loadingValidate: false,
+    finished: false
 }
 
 function boardReducer(state = initialState, action) {
     if (action.type === SET_BOARD) {
-        // console.log('PAYLOAD', JSON.stringify(action.payload))
         let filled = []
         for (let i = 0; i < action.payload.length; i++) {
            for (let j = 0; j < action.payload[i].length; j++) {
@@ -24,20 +24,25 @@ function boardReducer(state = initialState, action) {
                 }
             }
         }    
-        // console.log(filled, 'FILLED')
         return { ...state, board: action.payload, boardFetch: true, uneditable: [...filled]}
     } else if (action.type === VALIDATE_BOARD) {
         return { ...state, boardStatus: action.payload}
     } else if (action.type === SOLVE_BOARD) {
-        return { ...state, solvedBoard: action.payload.solution}
+        if (action.payload.status == 'unsolvable') {
+            alert('The board is unsolvable')
+        } else {
+            return { ...state, autoSolvedBoard: action.payload.solution}
+        }
     } else if (action.type === RESET_BOARD) {
-        return { ...state, solvedBoard: [], boardStatus: 'Not Validated', board: [], boardFetch: 'false'}
+        return { ...state, autoSolvedBoard: [], boardStatus: 'Not Validated', board: [], boardFetch: 'false'}
     } else if (action.type === TOGGLE_LOADER_BOARD) {
         return { ...state, loadingBoard: action.payload}
     } else if (action.type === TOGGLE_LOADER_VALIDATE) {
         return { ...state, loadingValidate: action.payload}
     } else if (action.type === SET_UNEDITABLE) {
         return { ...state, uneditable: action.payload}
+    } else if (action.type === SET_FINISHED) {
+        return { ...state, finished: action.payload}
     }
 
     return state
