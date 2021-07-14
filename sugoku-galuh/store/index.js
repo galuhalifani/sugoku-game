@@ -1,5 +1,5 @@
 import { createStore, applyMiddleware, compose } from 'redux'
-import { SET_UNEDITABLE, SET_BOARD, VALIDATE_BOARD, SET_FINISHED, SOLVE_BOARD, RESET_BOARD, TOGGLE_LOADER_BOARD, TOGGLE_LOADER_VALIDATE } from './actionTypes.js'
+import { SET_UNEDITABLE, SET_BOARD, VALIDATE_BOARD, SET_FINISHED, SET_LEADERBOARD, SOLVE_BOARD, RESET_BOARD, TOGGLE_LOADER_BOARD, TOGGLE_LOADER_VALIDATE } from './actionTypes.js'
 import thunk from 'redux-thunk'
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose
 
@@ -11,7 +11,8 @@ const initialState = {
     uneditable: [],
     loadingBoard: false,
     loadingValidate: false,
-    finished: false
+    finished: false,
+    leaderboard: []
 }
 
 function boardReducer(state = initialState, action) {
@@ -43,6 +44,8 @@ function boardReducer(state = initialState, action) {
         return { ...state, uneditable: action.payload}
     } else if (action.type === SET_FINISHED) {
         return { ...state, finished: action.payload}
+    } else if (action.type === SET_LEADERBOARD) {
+        return { ...state, leaderboard: [...state.leaderboard, [action.payload.name, action.payload.totalTime]]}
     }
 
     return state

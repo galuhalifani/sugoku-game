@@ -1,7 +1,8 @@
 import React from 'react';
-import { StyleSheet, Text, View, TextInput, Button } from 'react-native';
+import { StyleSheet, Text, View, TextInput, Button, ScrollView } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux'
 import { resetBoard, setUneditable } from '../store/actions'
+import { Table, Row, Rows } from 'react-native-table-component';
 
 const Separator = () => (
     <View style={styles.separator} />
@@ -11,7 +12,10 @@ export default function Finish({route, navigation}) {
     const dispatch = useDispatch()
     const select = useSelector
     
-    const { name, difficulty, board } = route.params
+    const { name, difficulty, board, secondCount, timelapse } = route.params
+    const leaderboard = select(state => state.leaderboard)
+    const sortedLeaderboard = leaderboard.sort(function(a, b){return a[1]-b[1]});
+    let leaderBoardHeader = ['Top Players Rank', 'Time (in Seconds)']
 
     function toHome() {
         dispatch(resetBoard())
@@ -35,8 +39,21 @@ export default function Finish({route, navigation}) {
                 <View style={styles.finishTitle}>
                     <Text style={styles.sudokuTitle}>Congratulations, {name}!</Text>
                     <Text style={styles.sudokuText}>You have solved Galuh's Sudoku - {difficulty} Level</Text>
+                    <Text style={styles.sudokuText}>Your time is {timelapse}</Text>
                 </View>
+
                 <View style={styles.separator}/>
+
+                <View style={{minHeight: 100, maxHeight: 260}}>
+                    <ScrollView>
+                        <View style={styles.leaderboard}>
+                            <Table borderStyle={{borderWidth: 2, borderColor: '#c8e1ff'}}>
+                                <Row data={leaderBoardHeader} style={styles.head} textStyle={styles.textHead}/>
+                                <Rows data={sortedLeaderboard} textStyle={styles.textData}/>
+                            </Table>
+                        </View>
+                    </ScrollView>
+                </View>
 
                 <View style={styles.backToBoard}>
                 <Text style={styles.sudokuRemark}>Want to Check Out Your Last Board?</Text>
@@ -65,7 +82,11 @@ const styles = StyleSheet.create({
         marginVertical: 7,
         borderBottomColor: 'lightgrey',
         borderBottomWidth: StyleSheet.hairlineWidth,
-      },   
+    },   
+    leaderboard: {
+        flex: 1,
+        flexGrow: 1
+    },
     container: {
       flex: 1,
       backgroundColor: 'darkblue',
@@ -111,4 +132,7 @@ const styles = StyleSheet.create({
         fontStyle: 'italic',
         color: 'white'
     }, 
+    head: { height: 40, backgroundColor: '#f1f8ff'},
+    textHead: { margin: 6 },
+    textData: { margin: 6, color: 'white' }
 });

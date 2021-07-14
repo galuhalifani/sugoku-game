@@ -1,4 +1,4 @@
-import { SET_UNEDITABLE, SET_FINISHED, SET_BOARD, VALIDATE_BOARD, SOLVE_BOARD, RESET_BOARD, TOGGLE_LOADER_BOARD, TOGGLE_LOADER_VALIDATE } from './actionTypes.js'
+import { SET_UNEDITABLE, SET_FINISHED, SET_BOARD, VALIDATE_BOARD, SOLVE_BOARD, SET_LEADERBOARD, RESET_BOARD, TOGGLE_LOADER_BOARD, TOGGLE_LOADER_VALIDATE } from './actionTypes.js'
 
 export function setBoard(input) {
     return {
@@ -56,7 +56,15 @@ export function setFinished(input) {
     }
 }
 
+export function setLeaderboard(input) {
+    return {
+        type: SET_LEADERBOARD,
+        payload: input 
+    }
+}
+
 export function fetchBoard(difficulty) {
+    // console.log('fetch board', difficulty)
     return function(dispatch) {
         dispatch(toggleLoaderBoard(true))
         fetch(`https://sugoku.herokuapp.com/board?difficulty=${difficulty}`)
@@ -101,7 +109,7 @@ export function validateBoard(board) {
             })
             .catch(err => {
                 dispatch(toggleLoaderValidate(false))
-                console.log('ERROR FETCH BOARD', err)
+                console.log('ERROR VALIDATE BOARD', err)
             })
     }
 }
@@ -132,7 +140,7 @@ export function solveBoard(board) {
                 dispatch(solve(data))
             })
             .catch(err => {
-                console.log('ERROR FETCH BOARD', err)
+                console.log('ERROR SOLVE BOARD', err)
             })
     }
 }

@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
-import { ActivityIndicator, StyleSheet, Text, View, TextInput, ScrollView, Button, Alert, Animated } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View, TextInput, ScrollView, Button, Alert, Animated, Modal, Pressable } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux'
-import { fetchBoard, validateBoard, solveBoard, resetBoard, setFinished } from '../store/actions'
+import { fetchBoard, validateBoard, solveBoard, resetBoard, setFinished, setLeaderboard } from '../store/actions'
 import { CountdownCircleTimer } from 'react-native-countdown-circle-timer';
 
 const Separator = () => (
@@ -14,6 +14,7 @@ export default function Board({route, navigation}) {
 
     const dispatch = useDispatch()
     const select = useSelector
+    const [modalVisible, setModalVisible] = useState(false);
     const board = select(state => state.board)
     const loadingBoard = select(state => state.loadingBoard)
     const loadingValidate = select(state => state.loadingValidate)
@@ -26,31 +27,44 @@ export default function Board({route, navigation}) {
     const [isPlaying, setIsPlaying] = useState(true)
     const [timeOut, setTimeOut] = useState(false)
     const [normalTimer, setNormalTimer] = useState(false)
+    const [timelapse, setTimeLapse] = useState('')
+    const [totalTime, setTotalTime] = useState(0)
     let secondCount = 0;
     let stopWatch;
-    const [timelapse, setTimeLapse] = useState('')
 
+    // board hooks
     useEffect(() => {
       let mounted = true
-      console.log('useEffect 1')
+      // console.log('useEffect 1')
       if(mounted) {
         if (autoSolvedBoard.length > 0) {
           setBoard2(autoSolvedBoard)        
         } else if (board.length > 0) {
           setBoard2(board)
         } 
-        if (boardStatus === 'solved') {
-          clearInterval(stopWatch)
-          dispatch(setFinished(true))
-          navigation.navigate('Finish', {
-            name: name,
-            difficulty: difficulty,
-            board: board2
-          })
-        }
       }
       return () => { mounted = false };
-    }, [board.length, autoSolvedBoard, boardStatus])
+    }, [board.length, autoSolvedBoard])
+
+    // go to finish page
+    useEffect(() => {
+      if (boardStatus === 'solved') {
+        setNormalTimer(true)
+        clearInterval(stopWatch)
+        dispatch(setFinished(true))
+        dispatch(setLeaderboard({
+          name: name,
+          totalTime: totalTime
+        }))
+        navigation.navigate('Finish', {
+          name: name,
+          difficulty: difficulty,
+          secondCount: secondCount,
+          timelapse: timelapse,
+          board: board2
+        })
+      }
+    }, [boardStatus])
 
     // hooks for setInterval timelapse
     useEffect(() => {
@@ -64,6 +78,7 @@ export default function Board({route, navigation}) {
       return () => { mounted = false, clearInterval(stopWatch) };
     }, [finished])
   
+    // if no countdown, use normal timer
     useEffect(() => {
       if (countdown == 0) {
         setNormalTimer(true)
@@ -87,7 +102,7 @@ export default function Board({route, navigation}) {
  
     function changeBoard(text, r, c) {
       if (text.length > 1) {
-        alert('You can only input 1 digit for each box')
+        alert('Only single digit allowed. Please input value between 1-9')
       } else {
         let newBoard = [...board2]
         // console.log('ROW', r, 'COL', c, 'VALUE', text)
@@ -105,16 +120,6 @@ export default function Board({route, navigation}) {
 
     function validate() {
       dispatch(validateBoard(board2))
-      if (boardStatus === 'solved') {
-        setNormalTimer(true)
-        clearInterval(stopWatch)
-        dispatch(setFinished(true))
-        navigation.navigate('Finish', {
-          name: name,
-          difficulty: difficulty,
-          board: board2
-        })
-      }
     }
 
     function solve() {
@@ -145,9 +150,10 @@ export default function Board({route, navigation}) {
       let displayMinutes = (minutes < 10) ? '0' + minutes : minutes;
       let displaySeconds = (seconds < 10) ? '0' + seconds : seconds;
 
-      secondCount++;
-
+      setTotalTime(secondCount)
       setTimeLapse(displayHours + ':' + displayMinutes + ':' + displaySeconds)
+
+      secondCount++;
     }
 
     // countdown (different from timer)
@@ -168,6 +174,8 @@ export default function Board({route, navigation}) {
       ]);
     }
     
+    // console.log('TOTALTIME', totalTime)
+
     return (
       <ScrollView>
         <View style={styles.containerView}>
@@ -194,7 +202,7 @@ export default function Board({route, navigation}) {
               {({ remainingTime, animatedColor }) => (
                 timeOut
                 ?
-                <Animated.Text style={{ color: animatedColor, fontSize: 10 }}>
+                <Animated.Text style={{ color: animatedColor, fontSize: 10, textAlign:'center' }}>
                 Time Out!
                 </Animated.Text>
                 :  
@@ -262,13 +270,6 @@ export default function Board({route, navigation}) {
               </View>            
             }
             
-            <Button
-            onPress={validate}
-            title="Validate"
-            color="blue"/>
-
-            <Separator />
-
             {
               finished ?
               <Button
@@ -276,6 +277,14 @@ export default function Board({route, navigation}) {
               title="Start New Game"
               color="green"/>   
               :
+              <View>
+                <Button
+                onPress={validate}
+                title="Validate"
+                color="blue"/>
+
+                <Separator />
+
               <View style={{flexDirection:'row'}}>
                 <View style={{flex:1, marginRight: 3}}>
                 <Button
@@ -290,8 +299,48 @@ export default function Board({route, navigation}) {
                 onPress={restart}
                 title="Shuffle Board"
                 color="darkred"/> 
-                <Separator />
                 </View>
+              </View>
+
+              <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => {
+                  Alert.alert("Modal has been closed.");
+                  setModalVisible(!modalVisible);
+                }}
+              >
+                <View style={styles.centeredView}>
+                  <View style={styles.modalView}>
+                    <Text style={styles.modalText}>1. Enter Name, Difficulty Level, and Countdown Timer Option</Text>
+                    <Text style={styles.modalText}>2. If you choose to play without countdown, a normal timer will be shown</Text>
+                    <Text style={styles.modalText}>3. To win, make sure no duplicate numbers are shown in each single row, column, and box</Text>
+                    <Text style={styles.modalText}>4. Click 'validate' after filling a cell, to validate your answer</Text>
+                    <Text style={styles.modalText}>5. Status 'broken' means you've made the wrong move. Auto-solve feature is disabled in this case</Text>
+                    <Text style={styles.modalText}>6. Status 'unsolved' means you've made the right move but not finished yet</Text>
+                    <Text style={styles.modalText}>7. Status 'solved' means you've solved the sudoku</Text>
+                    <Text style={styles.modalText}>8. Click 'auto-solve' to automatically solve the sudoku, and validate to finish the game</Text>
+                    <Text style={styles.modalText}>9. If timer runs out before you solve the sudoku, you can either restart the game, or continue without countdown</Text>
+                    <Text style={styles.modalText}>10. Your time will still be recorded regardless if you use countdown or not, and will be shown on the leaderboard stats</Text>
+        
+                    <Pressable
+                      style={[styles.button, styles.buttonClose]}
+                      onPress={() => setModalVisible(!modalVisible)}
+                    >
+                      <Text style={styles.textStyle}>Understood</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              </Modal>
+
+              <Separator />
+              <View style={{justifyContent: 'center', textAlign: 'center', alignItems:'center'}}>
+              <Pressable style={[styles.button, styles.buttonDark]} onPress={() => setModalVisible(true)}>
+                <Text style={styles.textStyle}>How To Play</Text>
+              </Pressable>
+              </View>
+
               </View>
             }
       
@@ -347,7 +396,7 @@ export default function Board({route, navigation}) {
       height: 40,
       width: 35,
       borderColor: 'darkgrey',
-      borderWidth: 1,
+      borderWidth: 0.8,
       padding: 2,
       textAlign: 'center'
     },
@@ -356,8 +405,8 @@ export default function Board({route, navigation}) {
       flexDirection: 'column',
       height: 40,
       width: 35,
-      borderColor: 'darkgrey',
-      borderWidth: 1,
+      borderColor: 'darkslategrey',
+      borderWidth: 0.8,
       padding: 2,
       textAlign: 'center',
       backgroundColor: 'lightgrey'
@@ -367,9 +416,9 @@ export default function Board({route, navigation}) {
       flexDirection: 'column',
       height: 40,
       width: 35,
-      borderWidth: 1,
-      borderColor: 'darkgrey',
-      borderRightColor: 'black',
+      borderWidth: 0.8,
+      borderColor: 'darkslategrey',
+      borderRightColor: 'darkslategrey',
       borderRightWidth: 4,
       padding: 2,
       textAlign: 'center',
@@ -380,9 +429,9 @@ export default function Board({route, navigation}) {
       flexDirection: 'column',
       height: 40,
       width: 35,
-      borderWidth: 1,
-      borderColor: 'darkgrey',
-      borderRightColor: 'black',
+      borderWidth: 0.8,
+      borderColor: 'darkslategrey',
+      borderRightColor: 'darkslategrey',
       borderRightWidth: 4,
       padding: 2,
       textAlign: 'center'
@@ -392,9 +441,9 @@ export default function Board({route, navigation}) {
       flexDirection: 'column',
       height: 40,
       width: 35,
-      borderWidth: 1,
-      borderColor: 'darkgrey',
-      borderLeftColor: 'black',
+      borderWidth: 0.8,
+      borderColor: 'darkslategrey',
+      borderLeftColor: 'darkslategrey',
       borderLeftWidth: 4,
       padding: 2,
       textAlign: 'center'
@@ -404,9 +453,9 @@ export default function Board({route, navigation}) {
       flexDirection: 'column',
       height: 40,
       width: 35,
-      borderWidth: 1,
-      borderColor: 'darkgrey',
-      borderLeftColor: 'black',
+      borderWidth: 0.8,
+      borderColor: 'darkslategrey',
+      borderLeftColor: 'darkslategrey',
       borderLeftWidth: 4,
       padding: 2,
       textAlign: 'center',
@@ -418,26 +467,61 @@ export default function Board({route, navigation}) {
     sudokuColsThickBottom: {
       flexDirection: 'row',
       borderBottomWidth: 3,
+      borderColor: 'darkslategrey'
     },
     sudokuColsThickTop: {
       flexDirection: 'row',
       borderTopWidth: 3,
+      borderColor: 'darkslategrey'
     },
     separator: {
       marginVertical: 8,
       borderBottomColor: '#737373',
       borderBottomWidth: StyleSheet.hairlineWidth,
     },  
-    overlay: {
+    centeredView: {
       flex: 1,
-      width: '100%', /* Full width (cover the whole page) */
-      height: '100%', /* Full height (cover the whole page) */
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      // backgroundColor: rgba(106, 160, 221, 0.116), /* Black background with opacity */
-      zIndex: 2, /* Specify a stack order in case you're using a different order for other elements */
-      // cursor: pointer /* Add a pointer on hover */
-    }  
+      justifyContent: "center",
+      alignItems: "center",
+      marginTop: 22
+    },
+    modalView: {
+      margin: 20,
+      backgroundColor: "white",
+      borderRadius: 20,
+      padding: 15,
+      alignItems: "center",
+      shadowColor: "#000",
+      shadowOffset: {
+        width: 0,
+        height: 2
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
+      elevation: 5
+    },
+    button: {
+      borderRadius: 20,
+      padding: 10,
+      elevation: 2
+    },
+    buttonOpen: {
+      backgroundColor: "#F194FF",
+    },
+    buttonDark: {
+      backgroundColor: "black",
+      color: 'white'
+    },
+    buttonClose: {
+      backgroundColor: "#2196F3",
+    },
+    textStyle: {
+      color: "white",
+      fontWeight: "bold",
+      textAlign: "center"
+    },
+    modalText: {
+      marginBottom: 15,
+      textAlign: "center"
+    }
   });
