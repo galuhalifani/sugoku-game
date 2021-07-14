@@ -125,17 +125,17 @@ export default function HomeScreen({navigation}) {
       >
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
-            <Text style={styles.modalText}>1. Enter Name, Difficulty Level, and Countdown Timer Option</Text>
-            <Text style={styles.modalText}>2. If you choose to play without countdown, a normal timer will be shown</Text>
-            <Text style={styles.modalText}>3. To win, make sure no duplicate numbers are shown in each single row, column, and box</Text>
-            <Text style={styles.modalText}>4. Click 'validate' after filling a cell, to validate your answer</Text>
-            <Text style={styles.modalText}>5. Status 'broken' means you've made the wrong move. Auto-solve feature is disabled in this case</Text>
-            <Text style={styles.modalText}>6. Status 'unsolved' means you've made the right move but not finished yet</Text>
-            <Text style={styles.modalText}>7. Status 'solved' means you've solved the sudoku</Text>
-            <Text style={styles.modalText}>8. Click 'auto-solve' to automatically solve the sudoku, and validate to finish the game</Text>
+          <Text style={styles.modalText}>1. If you choose to play without countdown, a normal timer will be shown</Text>
+            <Text style={styles.modalText}>2. To win, make sure no duplicate numbers are shown in each single row, column, and box</Text>
+            <Text style={styles.modalText}>3. Click 'validate' after filling a cell, to validate your answer</Text>
+            <Text style={styles.modalText}>4. Status 'broken' means you've made the wrong move. Auto-solve feature is disabled in this case</Text>
+            <Text style={styles.modalText}>5. Status 'unsolved' means you've made the right move but not finished yet</Text>
+            <Text style={styles.modalText}>6. Status 'solved' means you've solved the sudoku</Text>
+            <Text style={styles.modalText}>7. Click 'auto-solve' to automatically solve the sudoku, and validate to finish the game</Text>
+            <Text style={styles.modalText}>8. Clicking 'shuffle board' will NOT restart your timer</Text>
             <Text style={styles.modalText}>9. If timer runs out before you solve the sudoku, you can either restart the game, or continue without countdown</Text>
             <Text style={styles.modalText}>10. Your time will still be recorded regardless if you use countdown or not, and will be shown on the leaderboard stats</Text>
- 
+
             <Pressable
               style={[styles.button, styles.buttonClose]}
               onPress={() => setModalVisible(!modalVisible)}

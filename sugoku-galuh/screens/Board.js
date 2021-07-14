@@ -89,7 +89,7 @@ export default function Board({route, navigation}) {
     useEffect(() => {
         navigation.addListener('beforeRemove', (e) => {
           e.preventDefault();
-           Alert.alert("Start a New Game?", "Your last game will not be saved", [
+           Alert.alert("Start a New Game?", "Any Unfinished Progress Will Be Lost", [
              {
                text: "Cancel",
                onPress: () => null,
