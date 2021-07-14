@@ -200,7 +200,7 @@ export default function Board({route, navigation}) {
                 Time Out!
                 </Animated.Text>
                 :  
-                <Animated.Text style={{ color: animatedColor, fontSize: 20 }}>
+                <Animated.Text style={{ color: animatedColor, fontSize: 15 }}>
                 {remainingTime}
                 </Animated.Text>
               )}

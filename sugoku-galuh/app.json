@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Sudoku The Game - By Galuh",
-    "slug": "sugoku-by-galuh",
+    "name": "Simple Sudoku - By Galuh",
+    "slug": "sugokugame-by-galuh",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

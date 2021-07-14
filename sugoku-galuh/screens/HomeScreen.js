@@ -1,5 +1,5 @@
 import React, {useState, useRef, useEffect} from 'react';
-import { StyleSheet, Text, View, TextInput, Button, BackHandler, Alert, Modal, Pressable } from 'react-native';
+import { StyleSheet, Text, View, TextInput, Button, BackHandler, Alert, Modal, Pressable, ScrollView } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import { useDispatch, useSelector } from 'react-redux'
 import { setStartGame, fetchBoard, resetBoard, setFinished } from '../store/actions'
@@ -62,10 +62,12 @@ export default function HomeScreen({navigation}) {
     }
 
     return (
-    <View style={styles.container}>
+    <View style={styles.containerView}>
+      <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.sudokuTitle}>Welcome to Sugoku By Galuh!</Text>
       <Separator />
       <View style={styles.formView}>
+       <ScrollView>
         <Text style={styles.formTitle}>Enter Name and Level</Text>
         
         <TextInput style={styles.nameForm}
@@ -107,6 +109,7 @@ export default function HomeScreen({navigation}) {
               <Picker.Item label="2.5 Minutes" value="150" />
             </Picker>
         </View>
+        </ScrollView>
       </View>
 
       <Separator />
@@ -151,17 +154,22 @@ export default function HomeScreen({navigation}) {
         </View>
       </Modal>
 
-      <Button style={styles.validateButton}
+      <Button style={styles.howToPlay}
         onPress={() => setModalVisible(true)}
         title="How to Play"
         color="blue">
       </Button>
 
+      </ScrollView>
     </View>
     );
   }
 
   const styles = StyleSheet.create({
+    containerView: {
+      flex: 1,
+      backgroundColor: 'maroon',
+    },
     container: {
       flex: 1,
       backgroundColor: 'maroon',
@@ -169,7 +177,8 @@ export default function HomeScreen({navigation}) {
       justifyContent: 'center',
     },
     sudokuTitle: {
-        marginBottom: 20,
+        marginTop: 40,
+        marginBottom: 5,
         fontWeight: '900',
         fontSize: 20,
         color: 'yellow'
@@ -195,9 +204,10 @@ export default function HomeScreen({navigation}) {
       borderWidth: 1,
       padding: 5,
       // alignItems: 'center',
+      maxHeight: 550,
       width: '80%',
       color: 'white',
-      marginBottom: 40
+      marginBottom: 15
     },  
     nameForm: {
       marginTop: 10,
@@ -215,8 +225,6 @@ export default function HomeScreen({navigation}) {
       width: '50%',
       color: 'white',
       marginBottom: 10,
-      borderBottomColor: 'lightgrey',
-      borderBottomWidth: StyleSheet.hairlineWidth
     },
     pickerCountdown: {
       // alignItems: 'center',
@@ -270,5 +278,8 @@ export default function HomeScreen({navigation}) {
     modalText: {
       marginBottom: 15,
       textAlign: "center"
-    }
+    },
+    // scroll: {
+    //   marginBottom: 30
+    // }
   });
