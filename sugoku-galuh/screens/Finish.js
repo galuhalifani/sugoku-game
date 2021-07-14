@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, Text, View, TextInput, Button, ScrollView } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux'
-import { resetBoard, setUneditable } from '../store/actions'
+import { resetBoard, setUneditable, setLeaderboard } from '../store/actions'
 import { Table, Row, Rows } from 'react-native-table-component';
 
 const Separator = () => (
@@ -12,10 +12,17 @@ export default function Finish({route, navigation}) {
     const dispatch = useDispatch()
     const select = useSelector
     
-    const { name, difficulty, board, secondCount, timelapse } = route.params
+    const { name, difficulty, board, secondCount, timelapse, totalTime } = route.params
     const leaderboard = select(state => state.leaderboard)
     const sortedLeaderboard = leaderboard.sort(function(a, b){return a[1]-b[1]});
     let leaderBoardHeader = ['Top Players Rank', 'Time (in Seconds)']
+
+    useEffect(() => {
+        dispatch(setLeaderboard({
+            name: name,
+            totalTime: totalTime
+        }))
+    }, [])
 
     function toHome() {
         dispatch(resetBoard())
@@ -43,8 +50,7 @@ export default function Finish({route, navigation}) {
                 </View>
 
                 <View style={styles.separator}/>
-
-                <View style={{minHeight: 100, maxHeight: 260}}>
+                <View style={{minHeight: 100, maxHeight: 225}}>
                     <ScrollView>
                         <View style={styles.leaderboard}>
                             <Table borderStyle={{borderWidth: 2, borderColor: '#c8e1ff'}}>

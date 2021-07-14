@@ -1,4 +1,4 @@
-import { SET_UNEDITABLE, SET_FINISHED, SET_BOARD, VALIDATE_BOARD, SOLVE_BOARD, SET_LEADERBOARD, RESET_BOARD, TOGGLE_LOADER_BOARD, TOGGLE_LOADER_VALIDATE } from './actionTypes.js'
+import { SET_UNEDITABLE, SET_FINISHED, START_GAME, SET_BOARD, VALIDATE_BOARD, SOLVE_BOARD, SET_LEADERBOARD, RESET_BOARD, TOGGLE_LOADER_BOARD, TOGGLE_LOADER_VALIDATE } from './actionTypes.js'
 
 export function setBoard(input) {
     return {
@@ -63,6 +63,13 @@ export function setLeaderboard(input) {
     }
 }
 
+export function setStartGame(input) {
+    return {
+        type: START_GAME,
+        payload: input 
+    }  
+}
+
 export function fetchBoard(difficulty) {
     // console.log('fetch board', difficulty)
     return function(dispatch) {
@@ -72,6 +79,7 @@ export function fetchBoard(difficulty) {
         .then(data => {
             dispatch(setBoard(data.board))
             dispatch(toggleLoaderBoard(false))
+            dispatch(setStartGame(true))
         })
         .catch(err => {
             dispatch(toggleLoaderBoard(false))

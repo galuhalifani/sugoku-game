@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import { ActivityIndicator, StyleSheet, Text, View, TextInput, ScrollView, Button, Alert, Animated, Modal, Pressable } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux'
-import { fetchBoard, validateBoard, solveBoard, resetBoard, setFinished, setLeaderboard } from '../store/actions'
+import { fetchBoard, validateBoard, solveBoard, resetBoard, setFinished, setStartGame, setLeaderboard } from '../store/actions'
 import { CountdownCircleTimer } from 'react-native-countdown-circle-timer';
 
 const Separator = () => (
@@ -16,6 +16,7 @@ export default function Board({route, navigation}) {
     const select = useSelector
     const [modalVisible, setModalVisible] = useState(false);
     const board = select(state => state.board)
+    const startGame = select(state => state.startGame)
     const loadingBoard = select(state => state.loadingBoard)
     const loadingValidate = select(state => state.loadingValidate)
     const autoSolvedBoard = select(state => state.autoSolvedBoard)
@@ -52,16 +53,13 @@ export default function Board({route, navigation}) {
         setNormalTimer(true)
         clearInterval(stopWatch)
         dispatch(setFinished(true))
-        dispatch(setLeaderboard({
-          name: name,
-          totalTime: totalTime
-        }))
         navigation.navigate('Finish', {
           name: name,
           difficulty: difficulty,
           secondCount: secondCount,
           timelapse: timelapse,
-          board: board2
+          board: board2,
+          totalTime: totalTime
         })
       }
     }, [boardStatus])
@@ -77,13 +75,6 @@ export default function Board({route, navigation}) {
       }
       return () => { mounted = false, clearInterval(stopWatch) };
     }, [finished])
-  
-    // if no countdown, use normal timer
-    useEffect(() => {
-      if (countdown == 0) {
-        setNormalTimer(true)
-      }
-    }, [countdown])
 
     // hooks for removeScreen
     useEffect(() => {
@@ -95,13 +86,14 @@ export default function Board({route, navigation}) {
                onPress: () => null,
                style: "cancel"
              },
-             { text: "YES", onPress: () => navigation.dispatch(e.data.action) }
+             { text: "YES", onPress: () => {dispatch(setStartGame(false)),
+              navigation.dispatch(e.data.action)}}
            ]);
          })    
    }, [navigation])
  
     function changeBoard(text, r, c) {
-      if (text.length > 1) {
+      if (text.length > 1 || isNaN(text)) {
         alert('Only single digit allowed. Please input value between 1-9')
       } else {
         let newBoard = [...board2]
@@ -186,7 +178,9 @@ export default function Board({route, navigation}) {
             countdown == 0 || finished == true ?
             null
             :
-            
+            !startGame ?
+            null
+            :
             <CountdownCircleTimer
                 size={50}
                 strokeWidth={5}
@@ -211,11 +205,13 @@ export default function Board({route, navigation}) {
                 </Animated.Text>
               )}
             </CountdownCircleTimer>
-           
           }
 
           {
-            normalTimer ?
+            !startGame ?
+            null
+            :
+            countdown == 0 || normalTimer ?
             <Text style={{marginBottom: 10, fontStyle:'italic'}}>Time elapsed: <Text style={{backgroundColor: 'darkred', color:'white'}}>{timelapse}</Text></Text>
             :
             null
@@ -313,14 +309,14 @@ export default function Board({route, navigation}) {
               >
                 <View style={styles.centeredView}>
                   <View style={styles.modalView}>
-                    <Text style={styles.modalText}>1. Enter Name, Difficulty Level, and Countdown Timer Option</Text>
-                    <Text style={styles.modalText}>2. If you choose to play without countdown, a normal timer will be shown</Text>
-                    <Text style={styles.modalText}>3. To win, make sure no duplicate numbers are shown in each single row, column, and box</Text>
-                    <Text style={styles.modalText}>4. Click 'validate' after filling a cell, to validate your answer</Text>
-                    <Text style={styles.modalText}>5. Status 'broken' means you've made the wrong move. Auto-solve feature is disabled in this case</Text>
-                    <Text style={styles.modalText}>6. Status 'unsolved' means you've made the right move but not finished yet</Text>
-                    <Text style={styles.modalText}>7. Status 'solved' means you've solved the sudoku</Text>
-                    <Text style={styles.modalText}>8. Click 'auto-solve' to automatically solve the sudoku, and validate to finish the game</Text>
+                    <Text style={styles.modalText}>1. If you choose to play without countdown, a normal timer will be shown</Text>
+                    <Text style={styles.modalText}>2. To win, make sure no duplicate numbers are shown in each single row, column, and box</Text>
+                    <Text style={styles.modalText}>3. Click 'validate' after filling a cell, to validate your answer</Text>
+                    <Text style={styles.modalText}>4. Status 'broken' means you've made the wrong move. Auto-solve feature is disabled in this case</Text>
+                    <Text style={styles.modalText}>5. Status 'unsolved' means you've made the right move but not finished yet</Text>
+                    <Text style={styles.modalText}>6. Status 'solved' means you've solved the sudoku</Text>
+                    <Text style={styles.modalText}>7. Click 'auto-solve' to automatically solve the sudoku, and validate to finish the game</Text>
+                    <Text style={styles.modalText}>8. Clicking 'shuffle board' will NOT restart your timer</Text>
                     <Text style={styles.modalText}>9. If timer runs out before you solve the sudoku, you can either restart the game, or continue without countdown</Text>
                     <Text style={styles.modalText}>10. Your time will still be recorded regardless if you use countdown or not, and will be shown on the leaderboard stats</Text>
         

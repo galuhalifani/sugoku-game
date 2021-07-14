@@ -17,7 +17,7 @@ export default function App() {
       <Stack.Navigator>
         <Stack.Screen name="Home" component={HomeScreen} options={{headerShown: false}} />
         <Stack.Screen name="Game" component={Board} />
-        <Stack.Screen name="Finish" component={Finish} />
+        <Stack.Screen name="Finish" component={Finish} options={{headerShown: false}}/>
       </Stack.Navigator>
     </NavigationContainer>
     </Provider>

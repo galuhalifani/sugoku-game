@@ -2,7 +2,7 @@ import React, {useState, useRef, useEffect} from 'react';
 import { StyleSheet, Text, View, TextInput, Button, BackHandler, Alert, Modal, Pressable } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import { useDispatch, useSelector } from 'react-redux'
-import { fetchBoard, resetBoard, setFinished } from '../store/actions'
+import { setStartGame, fetchBoard, resetBoard, setFinished } from '../store/actions'
 
 const Separator = () => (
     <View style={styles.separator} />
@@ -15,10 +15,15 @@ export default function HomeScreen({navigation}) {
     const [playerName, setPlayerName] = useState('');
     const [countdown, setCountdown] = useState('0');
     const pickerRef = useRef();
+    const thisStartGame = select(state => state.startGame)
     const [modalVisible, setModalVisible] = useState(false);
 
     useEffect(() => {
       const homePage = navigation.addListener('focus', () => {
+        if (thisStartGame === true) {
+          // console.log('RESET')
+          dispatch(setStartGame(false))
+        }
         dispatch(resetBoard())
         dispatch(setFinished(false))  
         setSelectedDifficulty('')
