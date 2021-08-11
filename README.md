@@ -1,6 +1,14 @@
-# sugoku
+# Sugoku Game by Galuh
 
-Deployed Link: https://expo.io/@galuhalifani/sugokugame-by-galuh
-_(from expo: exp://exp.host/@galuhalifani/sugokugame-by-galuh)_
+A simple mobile sudoku game.
 
-Screenshots in folder ScreenShots, or link: https://drive.google.com/drive/folders/1d927Yw_28r4FX8Kci3Zm-Cj8QAOX8xwa?usp=sharing
+**For Demo, Visit this [Expo Site](https://bit.ly/sudoku-galuh)**
+
+### Development Scope
+**Scope**: FrontEnd
+_(Backend API from suGOku (https://github.com/bertoort/sugoku))_
+
+### Tech Stacks
+```React Native (Expo)```
+```React Redux```
+
