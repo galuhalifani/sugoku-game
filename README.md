@@ -11,4 +11,3 @@ _(Backend API from suGOku (https://github.com/bertoort/sugoku))_
 ### Tech Stacks
 ```React Native (Expo)```
 ```React Redux```
-
